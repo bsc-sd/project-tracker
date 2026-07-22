@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: project-tracker-db-dev
+    environment:
+      POSTGRES_DB: project_tracker_dev
+      POSTGRES_USER: tracker_admin
+      POSTGRES_PASSWORD: devpass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: project-tracker-redis-dev
+    command: redis-server --requirepass devredis123
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: base
+    container_name: project-tracker-api-dev
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://tracker_admin:devpass123@postgres:5432/project_tracker_dev
+      - REDIS_URL=redis://:devredis123@redis:6379/0
+      - JWT_SECRET_KEY=dev-secret-key-not-for-production
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REFRESH_TOKEN_EXPIRE_DAYS=30
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_dev_data:
