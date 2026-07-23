@@ -1,15 +1,18 @@
-
 #!/bin/bash
 set -e
 
 echo "Waiting for PostgreSQL to be ready..."
 
-# Wait for database to be ready
 until python -c "
 import psycopg2
 import os
+
+# Strip +asyncpg from URL for psycopg2 compatibility
+db_url = os.environ['DATABASE_URL']
+db_url = db_url.replace('postgresql+asyncpg://', 'postgresql://')
+
 try:
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    conn = psycopg2.connect(db_url)
     conn.close()
     print('Database is ready!')
 except Exception as e:
@@ -25,4 +28,3 @@ alembic upgrade head
 
 echo "Starting application server..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000
-
