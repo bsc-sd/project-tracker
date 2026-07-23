@@ -1,4 +1,5 @@
 """Application configuration using Pydantic Settings."""
+
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -7,7 +8,9 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://tracker_admin:password@localhost:5432/project_tracker"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://tracker_admin:password@localhost:5432/project_tracker"
+    )
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

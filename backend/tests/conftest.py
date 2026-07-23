@@ -1,4 +1,5 @@
 """Pytest configuration and shared fixtures."""
+
 import asyncio
 from typing import AsyncGenerator, Generator
 import pytest
@@ -10,7 +11,9 @@ from app.database import get_db, Base
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 engine_test = create_async_engine(TEST_DATABASE_URL, echo=False)
-TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
+TestSessionLocal = async_sessionmaker(
+    engine_test, class_=AsyncSession, expire_on_commit=False
+)
 
 
 @pytest.fixture(scope="session")
@@ -39,6 +42,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
+
     app.dependency_overrides[get_db] = override_get_db
     async with AsyncClient(app=app, base_url="http://testserver/api/v1") as ac:
         yield ac

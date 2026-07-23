@@ -1,4 +1,5 @@
 """Seed initial data for development and testing."""
+
 import asyncio
 from app.database import AsyncSessionLocal, engine, Base
 from app.models.user import User
@@ -30,7 +31,13 @@ async def seed():
             session.add(Status(status_name=name))
 
         # Create sample domains
-        domains = ["Cloud Infrastructure", "Networking", "Security", "Data Center", "Managed Services"]
+        domains = [
+            "Cloud Infrastructure",
+            "Networking",
+            "Security",
+            "Data Center",
+            "Managed Services",
+        ]
         for name in domains:
             session.add(Domain(domain_name=name))
 
