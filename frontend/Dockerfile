@@ -1,15 +1,16 @@
+
+# Build stage
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --frozen-lockfile
+COPY package*.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine AS production
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/frontend.conf /etc/nginx/conf.d/default.conf
+# Production stage
+FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:80 || exit 1
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+

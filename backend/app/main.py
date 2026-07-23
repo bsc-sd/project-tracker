@@ -1,46 +1,39 @@
-"""FastAPI application entry point."""
 
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config import settings
-from app.api.v1 import router as api_v1_router
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application startup and shutdown events."""
-    yield
-
+from app.routers import auth, commercials, domains, project_updates, projects, statuses, tech_leads
 
 app = FastAPI(
     title="Project Tracker API",
-    description="Enterprise project tracking application",
-    version=settings.APP_VERSION,
-    lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    description="API for tracking service delivery projects, tech leads, and commercials",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
-# CORS
-origins = [o.strip() for o in settings.CORS_ORIGINS.split(",")]
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routes
-app.include_router(api_v1_router, prefix="/api/v1")
+# Register Routers
+app.include_router(auth.router)
+app.include_router(domains.router)
+app.include_router(tech_leads.router)
+app.include_router(statuses.router)
+app.include_router(projects.router)
+app.include_router(commercials.router)
+app.include_router(project_updates.router)
 
 
-@app.get("/api/v1/health")
+@app.get("/api/health", tags=["Health"])
 async def health_check():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT,
-    }
+    return {"status": "healthy", "version": "1.0.0"}
+

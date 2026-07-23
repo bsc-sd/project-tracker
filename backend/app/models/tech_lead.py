@@ -1,32 +1,31 @@
-"""TechLead ORM model."""
 
-import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from app.database import Base
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
+from app.models import Base
 
 
 class TechLead(Base):
+    """Tech Lead model."""
+
     __tablename__ = "tech_leads"
 
-    tech_lead_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(100), nullable=False)
-    domain_id = Column(
-        UUID(as_uuid=True), ForeignKey("domains.domain_id"), nullable=False, index=True
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    domain_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("service_delivery_domains.id"), nullable=False
     )
-    is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    tech_lead_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False,
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
-    domain = relationship("Domain", back_populates="tech_leads", lazy="selectin")
-    projects = relationship("Project", back_populates="tech_lead", lazy="selectin")
+    domain = relationship("ServiceDeliveryDomain", back_populates="tech_leads")
+    projects = relationship("Project", back_populates="tech_lead", cascade="all, delete-orphan")
+
